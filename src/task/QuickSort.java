@@ -8,5 +8,13 @@ public class QuickSort {
         this.array = array;
     }
 
+    public int[] getArray() {
+        return this.array;
+    }
+
+    public int getArraySize() {
+        return this.array.length;
+    }
+
 
 }
