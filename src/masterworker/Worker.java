@@ -16,7 +16,7 @@ public class Worker extends Thread {
         this.workerQueue = new ConcurrentLinkedQueue<>();
         this.busy = true;
         this.master = master;
-        start();
+        start(); // start the run() method.
     }
 
     protected void addToWorkerQueue(SortDetail detail) {
@@ -31,12 +31,13 @@ public class Worker extends Thread {
     public void run() {
         while (busy) {
             if ( ! workerQueue.isEmpty()) {
-                SortDetail detail = this.workerQueue.remove();
+                SortDetail detail = this.workerQueue.poll();
                 QuickSort taskReference = detail.getReference();
 
                 int pivotIndex = taskReference.sort(detail.getStart(), detail.getEnd());
 
                 if (pivotIndex == -1) {
+                    System.out.println("Final Task added to MasterQueue");
                     this.master.addToMasterQueue(null);
                 }
 
