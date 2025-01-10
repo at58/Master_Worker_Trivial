@@ -39,7 +39,6 @@ public class Master extends Thread {
             if (Objects.isNull(detail)) {
                 try {
                     sleep(200);
-                    checkTaskState();
                     continue;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -65,6 +64,8 @@ public class Master extends Thread {
             this.masterQueue.add(detail);
             incomingTaskCounter++;
         }
+        System.out.println("check task state");
+        checkTaskState();
     }
 
     private void checkTaskState() {
