@@ -12,7 +12,6 @@ public class Main {
             System.out.print(i + ", ");
         }
 
-
         QuickSort q = new QuickSort();
         int pivot = q.quickSort(array, 0, 19);
 

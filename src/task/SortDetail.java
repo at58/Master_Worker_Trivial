@@ -4,12 +4,11 @@ public class SortDetail {
 
     private final int start;
     private final int end;
-    private final QuickSort reference;
+    private static QuickSort reference;
 
-    public SortDetail(int startIndex, int endIndex, QuickSort reference) {
+    public SortDetail(int startIndex, int endIndex) {
         this.start = startIndex;
         this.end = endIndex;
-        this.reference = reference;
     }
 
     public int getStart() {
@@ -20,7 +19,11 @@ public class SortDetail {
         return this.end;
     }
 
+    protected void setTaskReference(QuickSort quickSort) {
+        reference = quickSort;
+    }
+
     public QuickSort getReference() {
-        return this.reference;
+        return reference;
     }
 }
