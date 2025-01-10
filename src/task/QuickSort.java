@@ -12,6 +12,12 @@ public class QuickSort {
         return this.array.length;
     }
 
+    public SortDetail getInitialTaskDetail() {
+        SortDetail initialDetail = new SortDetail(0, (this.array.length - 1));
+        initialDetail.setTaskReference(this);
+        return initialDetail;
+    }
+
     /**
      * Executes the sorting algorithm of Quicksort.
      *
@@ -35,6 +41,7 @@ public class QuickSort {
     private int quickSort(int start, int end) {
 
         int pivotIndex = start + ((end - start) / 2);
+        System.out.println("Pivot Index: " + pivotIndex);
         int pivotElement = this.array[pivotIndex];
 
         int left = start;

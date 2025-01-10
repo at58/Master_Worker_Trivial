@@ -39,6 +39,7 @@ public class Worker extends Thread {
                 if (pivotIndex == -1) {
                     System.out.println("Final Task added to MasterQueue");
                     this.master.addToMasterQueue(null);
+                    continue;
                 }
 
                 SortDetail left = new SortDetail(detail.getStart(), (pivotIndex - 1), taskReference);

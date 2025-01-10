@@ -36,9 +36,10 @@ public class Master extends Thread {
 
             SortDetail detail = this.masterQueue.poll();
 
-            if (Objects.isNull(detail)) {
+            if (detail == null) {
                 try {
                     sleep(200);
+                    System.out.println("sleeps");
                     checkTaskState();
                     continue;
                 } catch (InterruptedException e) {
@@ -59,11 +60,13 @@ public class Master extends Thread {
     }
 
     protected void addToMasterQueue(SortDetail detail) {
-        if (detail == null) {
+        if (Objects.isNull(detail)) {
             finalTaskCounter += 2;
+            System.out.println("final task +2");
         } else {
             this.masterQueue.add(detail);
             incomingTaskCounter++;
+            System.out.println("incoming task ++");
         }
     }
 
@@ -80,7 +83,7 @@ public class Master extends Thread {
 
     public void execute(QuickSort taskObject, int workerNumber) {
 
-        SortDetail initialDetail = new SortDetail(0, (taskObject.getArrayLength() -1), taskObject);
+        SortDetail initialDetail = taskObject.getInitialTaskDetail();
         this.masterQueue.add(initialDetail);
 
         for (int i = 0; i < workerNumber; i++) {

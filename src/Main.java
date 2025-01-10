@@ -2,14 +2,13 @@ import masterworker.Master;
 import task.QuickSort;
 import util.Generator;
 
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
     public static void main(String[] args) {
 
-        int[] array = new int[] {9, 10, 1, 25, 47, 2, 0, 4, 16};
-        int[] bigArray = Generator.getRandomNumbers(110, 0, 1000);
+        int[] bigArray = Generator.getRandomNumbers(150, 0, 200);
         System.out.println("The unsorted Array:");
         for (int num : bigArray) {
             System.out.print(num + ", ");
@@ -22,10 +21,11 @@ public class Main {
         scanner.close();*/
 
         Master master = new Master();
-        master.execute(new QuickSort(bigArray), 1);
+        master.execute(new QuickSort(bigArray), 3);
 
         try {
             master.join();
+            System.out.println("Master thread returned to Main");
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -35,6 +35,8 @@ public class Main {
             System.out.print(num + ", ");
         }
 
+        Map<Integer, String> map = new TreeMap<>();
+        Map<Integer, String> hash = new HashMap<>();
         System.exit(0);
     }
 }
