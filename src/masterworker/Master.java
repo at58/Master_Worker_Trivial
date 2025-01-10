@@ -1,7 +1,6 @@
 package masterworker;
 
-import task.QuickSort;
-import task.SortDetail;
+import task.TaskDetail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,94 +10,86 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Master extends Thread {
 
-    private final Queue<SortDetail> masterQueue;
     private final List<Worker> workerList;
+    private final int[] array;
+    private final Queue<TaskDetail> masterQueue;
     private int incomingTaskCounter;
     private int finalTaskCounter;
     private boolean taskCompleted;
+    private int releasedWorkerCounter;
 
-    public Master() {
+    public Master(int[] array) {
         this.masterQueue = new ConcurrentLinkedQueue<>();
         this.workerList = new ArrayList<>();
         this.incomingTaskCounter = 0;
         this.finalTaskCounter = 0;
         this.taskCompleted = false;
+        this.array = array;
     }
 
     @Override
     public void run() {
 
-        System.out.println("Master Thread started...");
-        int numberOfWorker = workerList.size();
+        int numberOfWorker = (workerList.size() - 1);
         int scheduler = 0;
 
-        while (! this.taskCompleted) {
 
-            SortDetail detail = this.masterQueue.poll();
+        while (! taskCompleted) {
+
+            TaskDetail detail = this.masterQueue.poll();
 
             if (Objects.isNull(detail)) {
                 try {
-                    sleep(200);
-                    continue;
+                    sleep(500);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
+                }
+            } else {
+                Worker worker = this.workerList.get(scheduler);
+                worker.addToWorkerQueue(detail);
+
+                if (scheduler == numberOfWorker) {
+                    scheduler = 0;
+                } else {
+                    scheduler++;
                 }
             }
-
-            Worker worker = this.workerList.get(scheduler);
-            worker.addToWorkerQueue(detail);
-
-            if (scheduler == numberOfWorker) {
-                scheduler = 0;
-            } else {
-                scheduler++;
-            }
         }
-        System.out.println("Master Thread finished.");
+        System.out.println("Master Thread stopped.");
     }
 
-    protected void addToMasterQueue(SortDetail detail) {
+    protected synchronized void addToMasterQueue(TaskDetail detail) {
         if (detail == null) {
             finalTaskCounter += 2;
         } else {
             this.masterQueue.add(detail);
             incomingTaskCounter++;
         }
-        System.out.println("check task state");
-        checkTaskState();
-    }
-
-    private void checkTaskState() {
-
+        System.out.println("task count " + (incomingTaskCounter+1));
+        System.out.println("final task count " + finalTaskCounter);
         if ((incomingTaskCounter + 1) == finalTaskCounter) {
             for (Worker worker : this.workerList) {
                 worker.release();
             }
+            taskCompleted = true;
         }
-        System.out.println("final counter = task counter");
-        this.taskCompleted = true;
     }
 
-    public void execute(QuickSort taskObject, int workerNumber) {
+    protected int[] getArray() {
+        return this.array;
+    }
 
-        SortDetail initialDetail = new SortDetail(0, (taskObject.getArrayLength() -1), taskObject);
-        this.masterQueue.add(initialDetail);
+    public void execute(int workerNumber) {
 
-        for (int i = 0; i < workerNumber; i++) {
-            Worker worker = new Worker(this); // creates and runs new threads.
-            System.out.println("Worker #" + (i + 1) + " created.");
+        TaskDetail initialDetail = new TaskDetail(0, (this.array.length - 1));
+        addToMasterQueue(initialDetail);
+
+        // creates and runs worker-threads.
+        for (int i = 1; i <= workerNumber; i++) {
+            Worker worker = new Worker(this, i);
             workerList.add(worker);
         }
+        System.out.println("Master Thread started...");
         start(); // runs the master thread.
-
-        /*for (Worker worker : workerList) {
-            try {
-                worker.join();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                System.out.println("The task was completed successfully.");
-            }
-        }*/
     }
 }

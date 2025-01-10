@@ -1,6 +1,7 @@
 import masterworker.Master;
 import task.QuickSort;
 import util.Generator;
+import util.Validator;
 
 import java.util.Scanner;
 
@@ -8,22 +9,15 @@ public class Main {
 
     public static void main(String[] args) {
 
-        int[] array = new int[] {9, 10, 1, 25, 47, 2, 0, 4, 16};
-        int[] bigArray = Generator.getRandomNumbers(1000, 0, 1000);
+        int[] array = Generator.getRandomNumbers(300, 0, 999);
         System.out.println("The unsorted Array:");
-        for (int num : bigArray) {
+        for (int num : array) {
             System.out.print(num + ", ");
         }
         System.out.println();
 
-        /*Scanner scanner = new Scanner(System.in);
-        System.out.println("How many workers do you want to apply?");
-        String worker = scanner.next();
-        int workerNumber = Integer.parseInt(worker);
-        scanner.close();*/
-
-        Master master = new Master();
-        master.execute(new QuickSort(bigArray), 2);
+        Master master = new Master(array);
+        master.execute(3);
 
         try {
             master.join();
@@ -32,8 +26,9 @@ public class Main {
             e.printStackTrace();
         }
 
+        Validator.isSortedArray(array);
         System.out.println("The sorted array is:");
-        for (int num : bigArray) {
+        for (int num : array) {
             System.out.print(num + ", ");
         }
 
