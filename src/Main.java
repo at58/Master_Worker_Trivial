@@ -17,7 +17,7 @@ public class Main {
         System.out.println();
 
         Master master = new Master(array);
-        master.execute(3);
+        master.execute(5);
 
         try {
             master.join();
@@ -31,7 +31,5 @@ public class Main {
         for (int num : array) {
             System.out.print(num + ", ");
         }
-
-        //  System.exit(0);
     }
 }

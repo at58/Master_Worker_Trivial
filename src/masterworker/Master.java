@@ -7,25 +7,25 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Master extends Thread {
 
     private final List<Worker> workerList;
-    private final int[] array;
+    private final int[] data;
     private final Queue<TaskDetail> masterQueue;
-    private AtomicInteger incomingTaskCounter;
-    private AtomicInteger finalTaskCounter;
-    private boolean taskCompleted;
-    private int releasedWorkerCounter;
+    private final List<TaskDetail> completedTaskDetails;
+    private final AtomicInteger taskCounter;
+    private final AtomicBoolean taskCompleted;
 
     public Master(int[] array) {
         this.masterQueue = new ConcurrentLinkedQueue<>();
         this.workerList = new ArrayList<>();
-        this.incomingTaskCounter = new AtomicInteger(0);
-        this.finalTaskCounter = new AtomicInteger(0);
-        this.taskCompleted = false;
-        this.array = array;
+        this.taskCounter = new AtomicInteger(0);
+        this.completedTaskDetails = new ArrayList<>();
+        this.taskCompleted = new AtomicBoolean(false);
+        this.data = array;
     }
 
     @Override
@@ -35,7 +35,7 @@ public class Master extends Thread {
         int scheduler = 0;
 
 
-        while (! taskCompleted) {
+        while (! taskCompleted.get()) {
 
             TaskDetail detail = this.masterQueue.poll();
 
@@ -59,31 +59,36 @@ public class Master extends Thread {
         System.out.println("Master Thread stopped.");
     }
 
-    protected synchronized void addToMasterQueue(TaskDetail detail) {
-        if (detail == null) {
-            finalTaskCounter.addAndGet(2);
-        } else {
-            this.masterQueue.add(detail);
-            incomingTaskCounter.incrementAndGet();
-        }
-        System.out.println("task count " + (incomingTaskCounter.get() + 1));
-        System.out.println("final task count " + finalTaskCounter.get());
-        if ((incomingTaskCounter.get() + 1) == finalTaskCounter.get()) {
-            for (Worker worker : this.workerList) {
-                worker.release();
+    protected synchronized void addToMasterQueue(TaskDetail[] details) {
+
+        System.out.println("*** " + Thread.currentThread().getName() + " holds the Lock.***");
+
+        this.completedTaskDetails.add(details[0]);
+        if (details.length == 1) {
+            System.out.println("Created task count " + taskCounter.get());
+            System.out.println("Completed task count " + this.completedTaskDetails.size());
+            if (taskCounter.get() == completedTaskDetails.size()) {
+                for (Worker worker : this.workerList) {
+                    worker.release();
+                }
+                taskCompleted.set(true);
             }
-            taskCompleted = true;
+        } else {
+            this.masterQueue.add(details[1]);
+            this.masterQueue.add(details[2]);
+            taskCounter.addAndGet(2);
         }
     }
 
-    protected int[] getArray() {
-        return this.array;
+    protected int[] getData() {
+        return this.data;
     }
 
     public void execute(int workerNumber) {
 
-        TaskDetail initialDetail = new TaskDetail(0, (this.array.length - 1));
-        addToMasterQueue(initialDetail);
+        TaskDetail initialDetail = new TaskDetail(0, (this.data.length - 1));
+        this.masterQueue.add(initialDetail);
+        this.taskCounter.addAndGet(1);
 
         // creates and runs worker-threads.
         for (int i = 1; i <= workerNumber; i++) {
