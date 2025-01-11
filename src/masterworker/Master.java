@@ -15,8 +15,6 @@ public class Master extends Thread {
     private final List<Worker> workerList;
     private final int[] data;
     private final Queue<TaskDetail> masterQueue;
-    private final List<TaskDetail> completedTaskDetails;
-    private final AtomicInteger taskCounter;
     private final AtomicBoolean taskCompleted;
 
     public Master(int[] array) {
@@ -34,6 +32,9 @@ public class Master extends Thread {
         int numberOfWorker = (workerList.size() - 1);
         int scheduler = 0;
 
+        for (Worker worker : this.workerList) {
+            this.masterQueue.addAll(worker.queryFollowUps());
+        }
 
         while (! taskCompleted.get()) {
 
@@ -92,7 +93,7 @@ public class Master extends Thread {
 
         // creates and runs worker-threads.
         for (int i = 1; i <= workerNumber; i++) {
-            Worker worker = new Worker(this, i);
+            Worker worker = new Worker(this.data, i);
             workerList.add(worker);
         }
         System.out.println("Master Thread started...");
