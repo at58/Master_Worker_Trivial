@@ -7,22 +7,23 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Master extends Thread {
 
     private final List<Worker> workerList;
     private final int[] array;
     private final Queue<TaskDetail> masterQueue;
-    private int incomingTaskCounter;
-    private int finalTaskCounter;
+    private AtomicInteger incomingTaskCounter;
+    private AtomicInteger finalTaskCounter;
     private boolean taskCompleted;
     private int releasedWorkerCounter;
 
     public Master(int[] array) {
         this.masterQueue = new ConcurrentLinkedQueue<>();
         this.workerList = new ArrayList<>();
-        this.incomingTaskCounter = 0;
-        this.finalTaskCounter = 0;
+        this.incomingTaskCounter = new AtomicInteger(0);
+        this.finalTaskCounter = new AtomicInteger(0);
         this.taskCompleted = false;
         this.array = array;
     }
@@ -40,7 +41,7 @@ public class Master extends Thread {
 
             if (Objects.isNull(detail)) {
                 try {
-                    sleep(500);
+                    sleep(250);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -60,14 +61,14 @@ public class Master extends Thread {
 
     protected synchronized void addToMasterQueue(TaskDetail detail) {
         if (detail == null) {
-            finalTaskCounter += 2;
+            finalTaskCounter.addAndGet(2);
         } else {
             this.masterQueue.add(detail);
-            incomingTaskCounter++;
+            incomingTaskCounter.incrementAndGet();
         }
-        System.out.println("task count " + (incomingTaskCounter+1));
-        System.out.println("final task count " + finalTaskCounter);
-        if ((incomingTaskCounter + 1) == finalTaskCounter) {
+        System.out.println("task count " + (incomingTaskCounter.get() + 1));
+        System.out.println("final task count " + finalTaskCounter.get());
+        if ((incomingTaskCounter.get() + 1) == finalTaskCounter.get()) {
             for (Worker worker : this.workerList) {
                 worker.release();
             }
