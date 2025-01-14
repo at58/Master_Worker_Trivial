@@ -17,6 +17,7 @@ public class Main {
         System.out.println();
 
         Master master = new Master(array);
+        long startTime = System.currentTimeMillis();
         master.execute(5);
 
         try {
@@ -25,6 +26,22 @@ public class Main {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        long endTime = System.currentTimeMillis();
+
+        long runTime = (endTime - startTime);
+        char[] runtimeArray = String.valueOf(runTime).toCharArray();
+        StringBuilder runtimeBuilder = new StringBuilder();
+        if (runtimeArray.length < 4) {
+            runtimeBuilder.append("0");
+        }
+        for (int i = 0; i < runtimeArray.length; i++) {
+            if (i == (runtimeArray.length - 3)) {
+                runtimeBuilder.append(".");
+            }
+            runtimeBuilder.append(runtimeArray[i]);
+        }
+
+        System.out.println("Runtime in sec is: " + runtimeBuilder + " sec.");
 
         Validator.isSortedArray(array);
         System.out.println("The sorted array is:");
