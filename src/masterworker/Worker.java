@@ -15,14 +15,16 @@ public class Worker extends Thread {
     private final Queue<TaskDetail> workerQueue;
     private final Queue<TaskDetail> followUpTaskDetails;
     private final int[] data;
-    private final AtomicBoolean active;
+    private boolean isAlive;
+    private final AtomicBoolean busy;
 
     public Worker(int[] array, int workerID) {
         this.workerID = workerID;
         this.workerQueue = new ConcurrentLinkedQueue<>();
         this.followUpTaskDetails = new ConcurrentLinkedQueue<>();
         this.data = array;
-        this.active = new AtomicBoolean(true);
+        this.isAlive = true;
+        this.busy = new AtomicBoolean(false);
         start(); // start this worker-thread.
     }
 
@@ -40,25 +42,32 @@ public class Worker extends Thread {
 
     protected void release() {
         System.out.println("Worker #" + this.workerID + " released");
-        this.active.set(false);
+        this.isAlive = false;
+    }
+
+    protected boolean isBusy() {
+        return this.busy.get();
     }
 
     @Override
     public void run() {
         System.out.println("Worker #" + this.workerID + " thread started...");
 
-        while (active.get()) {
+        while (isAlive) {
 
             if ( ! workerQueue.isEmpty()) {
+                this.busy.set(true);
                 TaskDetail detail = this.workerQueue.poll();
 
                 int pivot = QuickSort.sort(this.data, detail);
 
                 if (pivot == -1) {
+                    this.busy.set(false);
                     continue;
                 }
                 this.followUpTaskDetails.add(new TaskDetail(detail.getStart(), (pivot - 1)));
                 this.followUpTaskDetails.add(new TaskDetail((pivot + 1), detail.getEnd()));
+                this.busy.set(false);
             } else {
                 try {
                     sleep(100);
