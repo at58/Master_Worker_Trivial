@@ -9,12 +9,12 @@ public class Main {
 
     public static void main(String[] args) {
 
-        int[] array = Generator.getRandomNumbers(300, 0, 999);
-        System.out.println("The unsorted Array:");
+        int[] array = Generator.getRandomNumbers(300, 0, 1000);
+        /*System.out.println("The unsorted Array:");
         for (int num : array) {
             System.out.print(num + ", ");
         }
-        System.out.println();
+        System.out.println();*/
 
         Master master = new Master(array);
         master.execute(5);

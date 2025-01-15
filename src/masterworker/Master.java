@@ -28,15 +28,15 @@ public class Master extends Thread {
 
         while (true) {
 
-            boolean newFollowUpReceived = false;
             for (Worker worker : this.workerList) {
                 List<TaskDetail> followUps = worker.queryFollowUps();
-                if (!followUps.isEmpty()) {
-                    newFollowUpReceived = true;
+                if (! followUps.isEmpty()) {
                     this.masterQueue.addAll(followUps);
                 }
             }
-            if (! newFollowUpReceived) {
+
+            TaskDetail detail = this.masterQueue.poll();
+            if (detail == null) {
                 boolean busyWorkers = false;
                 for (Worker worker : this.workerList) {
                     if (worker.isBusy()) {
@@ -48,18 +48,7 @@ public class Master extends Thread {
                         worker.release();
                     }
                     break; // break the while loop and effect this thread to terminate.
-                } else {
-                    try {
-                        sleep(100);
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
                 }
-            }
-
-            TaskDetail detail = this.masterQueue.poll();
-
-
             } else {
                 Worker worker = this.workerList.get(scheduler);
                 worker.addToWorkerQueue(detail);
@@ -72,31 +61,6 @@ public class Master extends Thread {
             }
         }
         System.out.println("Master Thread stopped.");
-    }
-
-    /*protected synchronized void addToMasterQueue(TaskDetail[] details) {
-
-        System.out.println("*** " + Thread.currentThread().getName() + " holds the Lock.***");
-
-        this.completedTaskDetails.add(details[0]);
-        if (details.length == 1) {
-            System.out.println("Created task count " + taskCounter.get());
-            System.out.println("Completed task count " + this.completedTaskDetails.size());
-            if (taskCounter.get() == completedTaskDetails.size()) {
-                for (Worker worker : this.workerList) {
-                    worker.release();
-                }
-                taskCompleted.set(true);
-            }
-        } else {
-            this.masterQueue.add(details[1]);
-            this.masterQueue.add(details[2]);
-            taskCounter.addAndGet(2);
-        }
-    }*/
-
-    protected int[] getData() {
-        return this.data;
     }
 
     public void execute(int workerNumber) {
