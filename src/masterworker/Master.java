@@ -14,18 +14,16 @@ public class Master extends Thread {
 
     private final List<Worker> workerList;
     private final int[] data;
+    private int dataRangeSum;
     private final Queue<TaskDetail> masterQueue;
-    private final List<TaskDetail> completedTaskDetails;
-    private final AtomicInteger taskCounter;
-    private final AtomicBoolean taskCompleted;
+    private boolean taskCompleted;
 
     public Master(int[] array) {
         this.masterQueue = new ConcurrentLinkedQueue<>();
         this.workerList = new ArrayList<>();
-        this.taskCounter = new AtomicInteger(0);
-        this.completedTaskDetails = new ArrayList<>();
-        this.taskCompleted = new AtomicBoolean(false);
+        this.taskCompleted = false;
         this.data = array;
+        this.dataRangeSum = 0;
     }
 
     @Override
@@ -35,13 +33,13 @@ public class Master extends Thread {
         int scheduler = 0;
 
 
-        while (! taskCompleted.get()) {
+        while (! taskCompleted) {
 
             TaskDetail detail = this.masterQueue.poll();
 
             if (Objects.isNull(detail)) {
                 try {
-                    sleep(250);
+                    sleep(50);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -59,24 +57,22 @@ public class Master extends Thread {
         System.out.println("Master Thread stopped.");
     }
 
-    protected synchronized void addToMasterQueue(TaskDetail[] details) {
+    protected synchronized void response(TaskDetail[] details) {
 
-        System.out.println("*** " + Thread.currentThread().getName() + " holds the Lock.***");
+        //System.out.println("*** " + Thread.currentThread().getName() + " holds the Lock.***");
 
-        this.completedTaskDetails.add(details[0]);
-        if (details.length == 1) {
-            System.out.println("Created task count " + taskCounter.get());
-            System.out.println("Completed task count " + this.completedTaskDetails.size());
-            if (taskCounter.get() == completedTaskDetails.size()) {
-                for (Worker worker : this.workerList) {
-                    worker.release();
+        for (TaskDetail taskDetail : details) {
+            if (taskDetail.isFinalTask()) {
+                this.dataRangeSum += taskDetail.getRange();
+                if (this.dataRangeSum == this.data.length) {
+                    for (Worker worker : this.workerList) {
+                        worker.release();
+                    }
+                    this.taskCompleted = true;
                 }
-                taskCompleted.set(true);
+            } else {
+                this.masterQueue.add(taskDetail);
             }
-        } else {
-            this.masterQueue.add(details[1]);
-            this.masterQueue.add(details[2]);
-            taskCounter.addAndGet(2);
         }
     }
 
@@ -88,7 +84,6 @@ public class Master extends Thread {
 
         TaskDetail initialDetail = new TaskDetail(0, (this.data.length - 1));
         this.masterQueue.add(initialDetail);
-        this.taskCounter.addAndGet(1);
 
         // creates and runs worker-threads.
         for (int i = 1; i <= workerNumber; i++) {

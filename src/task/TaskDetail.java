@@ -4,12 +4,12 @@ public class TaskDetail {
 
     private final int start;
     private final int end;
-    private boolean isCompleted;
+    private boolean isFinalTask;
 
     public TaskDetail(int startIndex, int endIndex) {
         this.start = startIndex;
         this.end = endIndex;
-        this.isCompleted = false;
+        this.isFinalTask = false;
     }
 
     public int getStart() {
@@ -20,7 +20,15 @@ public class TaskDetail {
         return this.end;
     }
 
-    public void completed() {
-        this.isCompleted = true;
+    public int getRange() {
+        return (this.getEnd() - this.getStart() + 1);
+    }
+
+    public void setFinal() {
+        this.isFinalTask = true;
+    }
+
+    public boolean isFinalTask() {
+        return this.isFinalTask;
     }
 }

@@ -42,16 +42,16 @@ public class Worker extends Thread {
                 TaskDetail detail = this.workerQueue.poll();
 
                 int pivot = QuickSort.sort(this.array, detail);
-                detail.completed();
 
                 if (pivot == -1) {
-                    this.master.addToMasterQueue(new TaskDetail[] {detail});
+                    detail.setFinal();
+                    this.master.response(new TaskDetail[] {detail});
                     continue;
                 }
 
                 TaskDetail left = new TaskDetail(detail.getStart(), (pivot - 1));
                 TaskDetail right = new TaskDetail((pivot + 1), detail.getEnd());
-                this.master.addToMasterQueue(new TaskDetail[] {detail, left, right});
+                this.master.response(new TaskDetail[] {left, right});
             }
         }
         System.out.println("Worker #" + this.workerID + " thread is stopped.");
